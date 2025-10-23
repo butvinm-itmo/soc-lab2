@@ -45,98 +45,87 @@
  *   ps7_uart    115200 (configured by bootrom/bsp)
  */
 
+#include "xil_io.h"
+#include <stdint.h>
+#include <stdio.h>
+
 #include "platform.h"
 
-#include "xgpio.h"
-#include "xil_printf.h"
-#include "xparameters.h"
+#define MAT_SIZE 7
+#define MAT_LED_START 8
+#define OUT_PORT 0x40000000
+#define DELAY 10000000
 
-/************************** Constant Definitions *****************************/
+void mat_mul(uint8_t A[MAT_SIZE][MAT_SIZE], uint8_t B[MAT_SIZE][MAT_SIZE], uint8_t C[MAT_SIZE][MAT_SIZE]) {
+    for (size_t i = 0; i < MAT_SIZE; i++) {
+        for (size_t j = 0; j < MAT_SIZE; j++) {
+            C[i][j] = 0;
+            for (size_t k = 0; k < MAT_SIZE; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+}
 
-#define LED 0x01 /* Assumes bit 0 of GPIO is connected to an LED  */
-
-/*
- * The following constants map to the XPAR parameters created in the
- * xparameters.h file. They are defined here such that a user can easily
- * change all the needed parameters in one place.
- */
-#define GPIO_EXAMPLE_DEVICE_ID XPAR_GPIO_0_DEVICE_ID
-
-/*
- * The following constant is used to wait after an LED is turned on to make
- * sure that it is visible to the human eye.  This constant might need to be
- * tuned for faster or slower processor speeds.
- */
-#define LED_DELAY 10000000
-
-/*
- * The following constant is used to determine which channel of the GPIO is
- * used for the LED if there are 2 channels supported.
- */
-#define LED_CHANNEL 1
-
-/**************************** Type Definitions *******************************/
-
-/***************** Macros (Inline Functions) Definitions *********************/
-
-#ifdef PRE_2_00A_APPLICATION
-
-/*
- * The following macros are provided to allow an application to compile that
- * uses an older version of the driver (pre 2.00a) which did not have a channel
- * parameter. Note that the channel parameter is fixed as channel 1.
- */
-#define XGpio_SetDataDirection(InstancePtr, DirectionMask) \
-    XGpio_SetDataDirection(InstancePtr, LED_CHANNEL, DirectionMask)
-
-#define XGpio_DiscreteRead(InstancePtr) \
-    XGpio_DiscreteRead(InstancePtr, LED_CHANNEL)
-
-#define XGpio_DiscreteWrite(InstancePtr, Mask) \
-    XGpio_DiscreteWrite(InstancePtr, LED_CHANNEL, Mask)
-
-#define XGpio_DiscreteSet(InstancePtr, Mask) \
-    XGpio_DiscreteSet(InstancePtr, LED_CHANNEL, Mask)
-
-#endif
-
-XGpio Gpio; /* The Instance of the GPIO Driver */
+void mat_add(uint8_t A[MAT_SIZE][MAT_SIZE], uint8_t B[MAT_SIZE][MAT_SIZE], uint8_t C[MAT_SIZE][MAT_SIZE]) {
+    for (size_t i = 0; i < MAT_SIZE; i++) {
+        for (size_t j = 0; j < MAT_SIZE; j++) {
+            C[i][j] = A[i][j] + B[i][j];
+        }
+    }
+}
 
 int main() {
-    int Status;
-    volatile int Delay;
-
     init_platform();
 
-    /* Initialize the GPIO driver */
-    Status = XGpio_Initialize(&Gpio, GPIO_EXAMPLE_DEVICE_ID);
-    if (Status != XST_SUCCESS) {
-        xil_printf("Gpio Initialization Failed\r\n");
-        cleanup_platform();
-        return XST_FAILURE;
-    }
+    uint8_t A[MAT_SIZE][MAT_SIZE] = {
+        { 0, 4, 8, 8, 9, 10, 5 },
+        { 8, 1, 2, 9, 9, 8, 7 },
+        { 1, 8, 4, 10, 5, 4, 4 },
+        { 10, 4, 8, 5, 3, 2, 7 },
+        { 0, 4, 7, 4, 0, 1, 9 },
+        { 0, 3, 9, 10, 3, 1, 9 },
+        { 1, 7, 1, 9, 4, 0, 7 },
+    };
 
-    /* Set the direction for all signals as inputs except the LED output */
-    XGpio_SetDataDirection(&Gpio, LED_CHANNEL, ~LED);
+    uint8_t B[MAT_SIZE][MAT_SIZE] = {
+        { 69, 4, 8, 8, 9, 10, 5 },
+        { 8, 69, 2, 9, 9, 8, 7 },
+        { 1, 8, 4, 10, 5, 4, 4 },
+        { 10, 4, 8, 5, 3, 2, 7 },
+        { 0, 4, 7, 4, 0, 1, 9 },
+        { 0, 3, 9, 10, 3, 1, 9 },
+        { 1, 7, 1, 9, 4, 0, 69 },
+    };
+
+    uint8_t C[MAT_SIZE][MAT_SIZE]; // A + B*B
 
     /* Loop forever blinking the LED */
-
     while (1) {
-        /* Set the LED to High */
-        XGpio_DiscreteWrite(&Gpio, LED_CHANNEL, LED);
+        uint16_t leds = 0x0001;
+        Xil_Out16(OUT_PORT, leds);
 
-        /* Wait a small amount of time so the LED is visible */
-        for (Delay = 0; Delay < LED_DELAY; Delay++);
+        mat_mul(B, B, C);
+        mat_add(A, C, C);
 
-        /* Clear the LED bit */
-        XGpio_DiscreteClear(&Gpio, LED_CHANNEL, LED);
+        leds = 0x0002;
+        Xil_Out16(OUT_PORT, leds);
+        
+        for (size_t delay = 0; delay < DELAY; delay++);
 
-        /* Wait a small amount of time so the LED is visible */
-        for (Delay = 0; Delay < LED_DELAY; Delay++);
+        for (size_t i = 0; i < MAT_SIZE; i++) {
+            for (size_t j = 0; j < MAT_SIZE; j++) {
+                leds = C[i][j] << MAT_LED_START;
+
+                Xil_Out16(OUT_PORT, leds);
+                for (size_t delay = 0; delay < DELAY; delay++);
+
+                Xil_Out16(OUT_PORT, 0x0000);
+                for (size_t delay = 0; delay < DELAY; delay++);
+            }
+        }
     }
 
-    xil_printf("Successfully ran Gpio Example\r\n");
-
     cleanup_platform();
-    return XST_SUCCESS;
+    return 0;
 }
