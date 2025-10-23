@@ -2946,3 +2946,6 @@ java.lang.NullPointerException
 
 !ENTRY com.xilinx.sdk.utils 0 0 2025-10-16 14:17:43.961
 !MESSAGE XSCT command with result: [::hsi::utils::closesw /home/butvinm/Dev/ITMO/soc/lab1/project_1/project_1.sdk/project_1_bsp/system.mss], Result: [null, ]. Thread: main
+
+!ENTRY com.xilinx.sdk.utils 1 0 2025-10-16 16:57:40.251
+!MESSAGE Executed Webtalk command
