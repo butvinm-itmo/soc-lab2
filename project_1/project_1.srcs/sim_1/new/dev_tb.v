@@ -32,7 +32,7 @@ module dev_tb ();
 
     agent agent_impl (
         .clk_i(clk),
-        .rst_i(rst_n),
+        .rst_i(~rst_n),
         .gpio_switch(gpio_switch),
         .gpio_led(gpio_led)
     );

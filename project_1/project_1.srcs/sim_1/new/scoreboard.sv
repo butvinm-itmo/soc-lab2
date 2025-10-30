@@ -57,13 +57,14 @@ module scoreboard(
             end
         end else if (state == WAIT_B) begin
             if (matrix_vld) begin
-                matrix_a <= matrix_input;
+                matrix_b <= matrix_input;
                 state <= WAIT_RESULT;
             end
         end else if (state == WAIT_RESULT) begin
             if (result_vld) state <= CHECK;
         end else begin
             for (int i = 0; i < 9; i++) begin
+                $display("[%d] a=%h, b=%h, sum=%h, result=%h", i, matrix_a[i], matrix_b[i], matrix_a[i] + matrix_b[i], result_matrix[i]);
                 if (matrix_a[i] + matrix_b[i] != result_matrix[i]) begin
                     $display("INCORRECT RESULT IN [%d] elem", i);
                     $finish();
