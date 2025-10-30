@@ -31,37 +31,38 @@ module sequencer(
     localparam WAIT = 1;
     localparam SEND_B = 2;
 
-    logic [15:0] matrix_a[9] = '{
-        16'h0001,
-        16'h0002,
-        16'h0003,
-        16'h0004,
-        16'h0005,
-        16'h0006,
-        16'h0007,
-        16'h0008,
-        16'h0009
-    };
-
-    logic [15:0] matrix_b[9] = '{
-        16'h0002,
-        16'h0003,
-        16'h0004,
-        16'h0005,
-        16'h0006,
-        16'h0007,
-        16'h0008,
-        16'h0009,
-        16'h000A
-    };
+    logic [15:0] matrix_a[9];
+    logic [15:0] matrix_b[9];
 
     logic [1:0] state;
+
+    // Function to generate randomized value based on requirements
+    // [0:50] with weight 1, [100:150] with weight 5
+    function automatic logic [15:0] gen_random_value();
+        int rand_choice;
+        int rand_val;
+
+        // Generate random choice: 0-5 range (6 total weights)
+        rand_choice = $urandom_range(5, 0);
+
+        if (rand_choice == 0) begin
+            // Weight 1: range [0:50]
+            rand_val = $urandom_range(50, 0);
+        end else begin
+            // Weight 5: range [100:150]
+            rand_val = $urandom_range(150, 100);
+        end
+
+        return rand_val[15:0];
+    endfunction
 
     always_ff @( posedge clk_i ) begin
         if (rst_i) begin
             state <= SEND_A;
             for (int i = 0; i < 9; i++) begin
                 sequence_o[i] <= '0;
+                matrix_a[i] <= gen_random_value();
+                matrix_b[i] <= gen_random_value();
             end
             sequence_valid_o <= '0;
         end else begin

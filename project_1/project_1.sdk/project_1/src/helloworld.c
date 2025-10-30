@@ -52,7 +52,8 @@
 
 #include "platform.h"
 
-#define MAT_SIZE 9
+#define MAT_DIM 3
+#define MAT_SIZE (MAT_DIM * MAT_DIM)
 #define GPIO_OUT 0x40000000
 #define GPIO_IN 0x40000008
 
@@ -75,27 +76,58 @@ void send_value(int value) {
     Xil_Out16(GPIO_OUT, 0x0000);
 }
 
+void mat_mul(uint8_t A[MAT_DIM][MAT_DIM], uint8_t B[MAT_DIM][MAT_DIM], uint8_t C[MAT_DIM][MAT_DIM]) {
+    for (size_t i = 0; i < MAT_DIM; i++) {
+        for (size_t j = 0; j < MAT_DIM; j++) {
+            C[i][j] = 0;
+            for (size_t k = 0; k < MAT_DIM; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+}
+
+void mat_add(uint8_t A[MAT_DIM][MAT_DIM], uint8_t B[MAT_DIM][MAT_DIM], uint8_t C[MAT_DIM][MAT_DIM]) {
+    for (size_t i = 0; i < MAT_DIM; i++) {
+        for (size_t j = 0; j < MAT_DIM; j++) {
+            C[i][j] = A[i][j] + B[i][j];
+        }
+    }
+}
+
 int main() {
     init_platform();
 
-    int A[MAT_SIZE];
-    int B[MAT_SIZE];
-    int C[MAT_SIZE] = { 0 };
+    uint8_t A[MAT_DIM][MAT_DIM];
+    uint8_t B[MAT_DIM][MAT_DIM];
+    uint8_t C[MAT_DIM][MAT_DIM]; // A + B*B
 
-    for (size_t i = 0; i < MAT_SIZE; i++) {
-        A[i] = get_value();
+    // Receive matrix A
+    for (size_t i = 0; i < MAT_DIM; i++) {
+        for (size_t j = 0; j < MAT_DIM; j++) {
+            A[i][j] = get_value();
+        }
     }
 
-    for (size_t i = 0; i < MAT_SIZE; i++) {
-        B[i] = get_value();
+    // Receive matrix B
+    for (size_t i = 0; i < MAT_DIM; i++) {
+        for (size_t j = 0; j < MAT_DIM; j++) {
+            B[i][j] = get_value();
+        }
     }
 
-    for (size_t i = 0; i < MAT_SIZE; i++) {
-        C[i] = A[i] + B[i];
-    }
+    // Compute B*B
+    uint8_t BB[MAT_DIM][MAT_DIM];
+    mat_mul(B, B, BB);
 
-    for (size_t i = 0; i < MAT_SIZE; i++) {
-        send_value(C[i]);
+    // Compute A + B*B
+    mat_add(A, BB, C);
+
+    // Send result matrix C
+    for (size_t i = 0; i < MAT_DIM; i++) {
+        for (size_t j = 0; j < MAT_DIM; j++) {
+            send_value(C[i][j]);
+        }
     }
 
     cleanup_platform();
