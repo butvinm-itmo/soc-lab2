@@ -10,3 +10,9 @@
 13:54:49 INFO  : Successfully done setting XSCT server connection channel  
 13:54:49 INFO  : Successfully done setting SDK workspace  
 13:54:49 INFO  : Processing command line option -hwspec /home/butvinm/Dev/ITMO/soc/lab1/project_1/project_1.sdk/design_1_wrapper.hdf.
+16:08:49 INFO  : Registering command handlers for SDK TCF services
+16:08:49 INFO  : Launching XSCT server: xsct -n -interactive /home/butvinm/Dev/ITMO/soc/lab2/project_1/project_1.sdk/temp_xsdb_launch_script.tcl
+16:08:51 INFO  : XSCT server has started successfully.
+16:08:51 INFO  : Successfully done setting XSCT server connection channel  
+16:08:52 INFO  : Successfully done setting SDK workspace  
+16:08:52 INFO  : Processing command line option -hwspec /home/butvinm/Dev/ITMO/soc/lab2/project_1/project_1.sdk/design_1_wrapper.hdf.

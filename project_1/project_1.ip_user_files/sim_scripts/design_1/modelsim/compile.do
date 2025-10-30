@@ -46,11 +46,11 @@ vmap axi_crossbar_v2_1_20 modelsim_lib/msim/axi_crossbar_v2_1_20
 vmap util_vector_logic_v2_0_1 modelsim_lib/msim/util_vector_logic_v2_0_1
 
 vlog -work xil_defaultlib -64 -incr -sv "+incdir+../../../../project_1.srcs/sources_1/bd/design_1/ipshared/c923" "+incdir+../../../../project_1.srcs/sources_1/bd/design_1/ipshared/ec67/hdl" \
-"C:/Xilinx/Vivado/2019.1/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv" \
-"C:/Xilinx/Vivado/2019.1/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv" \
+"/home/butvinm/Dev/3rd-party/vivado/Vivado/2019.1/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv" \
+"/home/butvinm/Dev/3rd-party/vivado/Vivado/2019.1/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv" \
 
 vcom -work xpm -64 -93 \
-"C:/Xilinx/Vivado/2019.1/data/ip/xpm/xpm_VCOMP.vhd" \
+"/home/butvinm/Dev/3rd-party/vivado/Vivado/2019.1/data/ip/xpm/xpm_VCOMP.vhd" \
 
 vcom -work microblaze_v11_0_1 -64 -93 \
 "../../../../project_1.srcs/sources_1/bd/design_1/ipshared/f8c3/hdl/microblaze_v11_0_vh_rfs.vhd" \

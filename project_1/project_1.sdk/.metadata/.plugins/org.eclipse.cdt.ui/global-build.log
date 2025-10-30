@@ -1,4 +1,4 @@
-16:52:51 **** Incremental Build of configuration Debug for project project_1 ****
+16:24:21 **** Incremental Build of configuration Debug for project project_1 ****
 make all 
 Building file: ../src/helloworld.c
 Invoking: MicroBlaze gcc compiler
@@ -13,6 +13,6 @@ Finished building target: project_1.elf
 Invoking: MicroBlaze Print Size
 mb-size project_1.elf  |tee "project_1.elf.size"
    text	   data	    bss	    dec	    hex	filename
-   4072	    268	   3108	   7448	   1d18	project_1.elf
+   3332	    268	   3112	   6712	   1a38	project_1.elf
 Finished building: project_1.elf.size
  

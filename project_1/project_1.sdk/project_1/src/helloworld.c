@@ -46,84 +46,56 @@
  */
 
 #include "xil_io.h"
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
 #include "platform.h"
 
-#define MAT_SIZE 7
-#define MAT_LED_START 8
-#define OUT_PORT 0x40000000
-#define DELAY 10000000
+#define MAT_SIZE 9
+#define GPIO_OUT 0x40000000
+#define GPIO_IN 0x40000008
 
-void mat_mul(uint8_t A[MAT_SIZE][MAT_SIZE], uint8_t B[MAT_SIZE][MAT_SIZE], uint8_t C[MAT_SIZE][MAT_SIZE]) {
-    for (size_t i = 0; i < MAT_SIZE; i++) {
-        for (size_t j = 0; j < MAT_SIZE; j++) {
-            C[i][j] = 0;
-            for (size_t k = 0; k < MAT_SIZE; k++) {
-                C[i][j] += A[i][k] * B[k][j];
-            }
-        }
+int get_value() {
+    int value = Xil_In16(GPIO_IN);
+    while ((value & 0x8000) == 0) {
+        value = Xil_In16(GPIO_IN);
     }
+    value = value & 0x00FF;
+
+    Xil_Out16(GPIO_OUT, 0x8000);
+    Xil_Out16(GPIO_OUT, 0x0000);
+
+    return value;
 }
 
-void mat_add(uint8_t A[MAT_SIZE][MAT_SIZE], uint8_t B[MAT_SIZE][MAT_SIZE], uint8_t C[MAT_SIZE][MAT_SIZE]) {
-    for (size_t i = 0; i < MAT_SIZE; i++) {
-        for (size_t j = 0; j < MAT_SIZE; j++) {
-            C[i][j] = A[i][j] + B[i][j];
-        }
-    }
+void send_value(int value) {
+    value = value | 0x4000;
+    Xil_Out16(GPIO_OUT, value);
+    Xil_Out16(GPIO_OUT, 0x0000);
 }
 
 int main() {
     init_platform();
 
-    uint8_t A[MAT_SIZE][MAT_SIZE] = {
-        { 0, 4, 8, 8, 9, 10, 5 },
-        { 8, 1, 2, 9, 9, 8, 7 },
-        { 1, 8, 4, 10, 5, 4, 4 },
-        { 10, 4, 8, 5, 3, 2, 7 },
-        { 0, 4, 7, 4, 0, 1, 9 },
-        { 0, 3, 9, 10, 3, 1, 9 },
-        { 1, 7, 1, 9, 4, 0, 7 },
-    };
+    int A[MAT_SIZE];
+    int B[MAT_SIZE];
+    int C[MAT_SIZE] = { 0 };
 
-    uint8_t B[MAT_SIZE][MAT_SIZE] = {
-        { 69, 4, 8, 8, 9, 10, 5 },
-        { 8, 69, 2, 9, 9, 8, 7 },
-        { 1, 8, 4, 10, 5, 4, 4 },
-        { 10, 4, 8, 5, 3, 2, 7 },
-        { 0, 4, 7, 4, 0, 1, 9 },
-        { 0, 3, 9, 10, 3, 1, 9 },
-        { 1, 7, 1, 9, 4, 0, 69 },
-    };
+    for (size_t i = 0; i < MAT_SIZE; i++) {
+        A[i] = get_value();
+    }
 
-    uint8_t C[MAT_SIZE][MAT_SIZE]; // A + B*B
+    for (size_t i = 0; i < MAT_SIZE; i++) {
+        B[i] = get_value();
+    }
 
-    /* Loop forever blinking the LED */
-    while (1) {
-        uint16_t leds = 0x0001;
-        Xil_Out16(OUT_PORT, leds);
+    for (size_t i = 0; i < MAT_SIZE; i++) {
+        C[i] = A[i] + B[i];
+    }
 
-        mat_mul(B, B, C);
-        mat_add(A, C, C);
-
-        leds = 0x0002;
-        Xil_Out16(OUT_PORT, leds);
-        
-        for (size_t delay = 0; delay < DELAY; delay++);
-
-        for (size_t i = 0; i < MAT_SIZE; i++) {
-            for (size_t j = 0; j < MAT_SIZE; j++) {
-                leds = C[i][j] << MAT_LED_START;
-
-                Xil_Out16(OUT_PORT, leds);
-                for (size_t delay = 0; delay < DELAY; delay++);
-
-                Xil_Out16(OUT_PORT, 0x0000);
-                for (size_t delay = 0; delay < DELAY; delay++);
-            }
-        }
+    for (size_t i = 0; i < MAT_SIZE; i++) {
+        send_value(C[i]);
     }
 
     cleanup_platform();
