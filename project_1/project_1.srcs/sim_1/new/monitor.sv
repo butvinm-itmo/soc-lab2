@@ -71,22 +71,19 @@ module monitor (
                 result_matrix_o[i] <= '0;
             end
         end else begin
-            // Log input matrices when they are valid
             if (inputs_valid && !inputs_logged) begin
                 $fwrite(log_file, "Matrix A (7x7):\n");
                 for (int i = 0; i < 7; i++) begin
-                    $fwrite(log_file, "  [%5d %5d %5d %5d %5d %5d %5d]\n",
-                        input_matrix_a[i*7 + 0], input_matrix_a[i*7 + 1], input_matrix_a[i*7 + 2],
-                        input_matrix_a[i*7 + 3], input_matrix_a[i*7 + 4], input_matrix_a[i*7 + 5],
-                        input_matrix_a[i*7 + 6]);
+                    $fwrite(log_file, "  [%5d %5d %5d %5d %5d %5d %5d]\n", input_matrix_a[i*7+0],
+                            input_matrix_a[i*7+1], input_matrix_a[i*7+2], input_matrix_a[i*7+3],
+                            input_matrix_a[i*7+4], input_matrix_a[i*7+5], input_matrix_a[i*7+6]);
                 end
 
                 $fwrite(log_file, "\nMatrix B (7x7):\n");
                 for (int i = 0; i < 7; i++) begin
-                    $fwrite(log_file, "  [%5d %5d %5d %5d %5d %5d %5d]\n",
-                        input_matrix_b[i*7 + 0], input_matrix_b[i*7 + 1], input_matrix_b[i*7 + 2],
-                        input_matrix_b[i*7 + 3], input_matrix_b[i*7 + 4], input_matrix_b[i*7 + 5],
-                        input_matrix_b[i*7 + 6]);
+                    $fwrite(log_file, "  [%5d %5d %5d %5d %5d %5d %5d]\n", input_matrix_b[i*7+0],
+                            input_matrix_b[i*7+1], input_matrix_b[i*7+2], input_matrix_b[i*7+3],
+                            input_matrix_b[i*7+4], input_matrix_b[i*7+5], input_matrix_b[i*7+6]);
                 end
 
                 $fwrite(log_file, "\n");
@@ -96,7 +93,6 @@ module monitor (
             case (state)
                 RECEIVE_LOW: begin
                     if (gpio_led[14]) begin
-                        // Mark algorithm start on first output
                         if (!algorithm_started) begin
                             start_time = $time;
                             algorithm_started <= 1;
@@ -129,16 +125,14 @@ module monitor (
                 end
             endcase
 
-            // Log outputs when all results received (only once)
             if (temp_idx == 49 && algorithm_started && !outputs_logged) begin
                 end_time = $time;
 
                 $fwrite(log_file, "Result Matrix C (7x7):\n");
                 for (int i = 0; i < 7; i++) begin
-                    $fwrite(log_file, "  [%5d %5d %5d %5d %5d %5d %5d]\n",
-                        result_matrix_o[i*7 + 0], result_matrix_o[i*7 + 1], result_matrix_o[i*7 + 2],
-                        result_matrix_o[i*7 + 3], result_matrix_o[i*7 + 4], result_matrix_o[i*7 + 5],
-                        result_matrix_o[i*7 + 6]);
+                    $fwrite(log_file, "  [%5d %5d %5d %5d %5d %5d %5d]\n", result_matrix_o[i*7+0],
+                            result_matrix_o[i*7+1], result_matrix_o[i*7+2], result_matrix_o[i*7+3],
+                            result_matrix_o[i*7+4], result_matrix_o[i*7+5], result_matrix_o[i*7+6]);
                 end
 
                 $fwrite(log_file, "Algorithm started at:  %0t ns\n", start_time);

@@ -34,7 +34,6 @@ module agent (
     logic sequence_valid, sequence_send, result_valid;
     logic matrix_a_stored, matrix_b_stored;
 
-    // Store matrices as they come from sequencer
     always_ff @(posedge clk_i) begin
         if (rst_i) begin
             matrix_a_stored <= 0;
@@ -80,7 +79,7 @@ module agent (
 
         .input_matrix_a(matrix_a),
         .input_matrix_b(matrix_b),
-        .inputs_valid(matrix_b_stored)
+        .inputs_valid  (matrix_b_stored)
     );
 
     scoreboard scoreboard_impl (

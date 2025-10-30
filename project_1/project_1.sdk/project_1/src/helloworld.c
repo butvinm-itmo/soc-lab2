@@ -71,12 +71,10 @@ uint16_t get_value() {
 }
 
 void send_value(uint16_t value) {
-    // Send low byte
     uint16_t low_byte = (value & 0x00FF) | 0x4000;
     Xil_Out16(GPIO_OUT, low_byte);
     Xil_Out16(GPIO_OUT, 0x0000);
 
-    // Send high byte
     uint16_t high_byte = ((value >> 8) & 0x00FF) | 0x4000;
     Xil_Out16(GPIO_OUT, high_byte);
     Xil_Out16(GPIO_OUT, 0x0000);
@@ -106,30 +104,25 @@ int main() {
 
     uint16_t A[MAT_DIM][MAT_DIM];
     uint16_t B[MAT_DIM][MAT_DIM];
-    uint16_t C[MAT_DIM][MAT_DIM]; // A + B*B
+    uint16_t C[MAT_DIM][MAT_DIM];
 
-    // Receive matrix A
     for (size_t i = 0; i < MAT_DIM; i++) {
         for (size_t j = 0; j < MAT_DIM; j++) {
             A[i][j] = get_value();
         }
     }
 
-    // Receive matrix B
     for (size_t i = 0; i < MAT_DIM; i++) {
         for (size_t j = 0; j < MAT_DIM; j++) {
             B[i][j] = get_value();
         }
     }
 
-    // Compute B*B
     uint16_t BB[MAT_DIM][MAT_DIM];
     mat_mul(B, B, BB);
 
-    // Compute A + B*B
     mat_add(A, BB, C);
 
-    // Send result matrix C
     for (size_t i = 0; i < MAT_DIM; i++) {
         for (size_t j = 0; j < MAT_DIM; j++) {
             send_value(C[i][j]);
