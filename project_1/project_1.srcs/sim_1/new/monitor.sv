@@ -47,6 +47,7 @@ module monitor (
     integer end_time;
     logic algorithm_started;
     logic inputs_logged;
+    logic outputs_logged;
     logic log_file_opened;
 
     initial begin
@@ -64,6 +65,7 @@ module monitor (
             state <= RECEIVE_LOW;
             algorithm_started <= 0;
             inputs_logged <= 0;
+            outputs_logged <= 0;
             low_byte <= 0;
             for (int i = 0; i < 9; i++) begin
                 result_matrix_o[i] <= '0;
@@ -71,15 +73,18 @@ module monitor (
         end else begin
             // Log input matrices when they are valid
             if (inputs_valid && !inputs_logged) begin
-                $fwrite(log_file, "=== INPUT SIGNALS ===\n");
-                $fwrite(log_file, "Matrix A:\n");
-                for (int i = 0; i < 9; i++) begin
-                    $fwrite(log_file, "A[%0d] = %0d (0x%h)\n", i, input_matrix_a[i], input_matrix_a[i]);
+                $fwrite(log_file, "Matrix A (3x3):\n");
+                for (int i = 0; i < 3; i++) begin
+                    $fwrite(log_file, "  [%5d %5d %5d]\n",
+                        input_matrix_a[i*3 + 0], input_matrix_a[i*3 + 1], input_matrix_a[i*3 + 2]);
                 end
-                $fwrite(log_file, "\nMatrix B:\n");
-                for (int i = 0; i < 9; i++) begin
-                    $fwrite(log_file, "B[%0d] = %0d (0x%h)\n", i, input_matrix_b[i], input_matrix_b[i]);
+
+                $fwrite(log_file, "\nMatrix B (3x3):\n");
+                for (int i = 0; i < 3; i++) begin
+                    $fwrite(log_file, "  [%5d %5d %5d]\n",
+                        input_matrix_b[i*3 + 0], input_matrix_b[i*3 + 1], input_matrix_b[i*3 + 2]);
                 end
+
                 $fwrite(log_file, "\n");
                 inputs_logged <= 1;
             end
@@ -120,16 +125,21 @@ module monitor (
                 end
             endcase
 
-            // Log outputs when all results received
-            if (temp_idx == 9 && algorithm_started) begin
+            // Log outputs when all results received (only once)
+            if (temp_idx == 9 && algorithm_started && !outputs_logged) begin
                 end_time = $time;
-                $fwrite(log_file, "=== OUTPUT SIGNALS ===\n");
-                for (int i = 0; i < 9; i++) begin
-                    $fwrite(log_file, "Result[%0d] = %0d (0x%h)\n", i, result_matrix_o[i], result_matrix_o[i]);
+
+                $fwrite(log_file, "Result Matrix C (3x3):\n");
+                for (int i = 0; i < 3; i++) begin
+                    $fwrite(log_file, "  [%5d %5d %5d]\n",
+                        result_matrix_o[i*3 + 0], result_matrix_o[i*3 + 1], result_matrix_o[i*3 + 2]);
                 end
-                $fwrite(log_file, "\n=== EXECUTION TIME ===\n");
-                $fwrite(log_file, "Algorithm finished at time: %0t ns\n", end_time);
-                $fwrite(log_file, "Total execution time: %0t ns\n\n", end_time - start_time);
+                $fwrite(log_file, "\n");
+                $fwrite(log_file, "Algorithm started at:  %0t ns\n", start_time);
+                $fwrite(log_file, "Algorithm finished at: %0t ns\n", end_time);
+                $fwrite(log_file, "Total execution time:  %0t ns\n\n", end_time - start_time);
+
+                outputs_logged <= 1;
             end
         end
     end

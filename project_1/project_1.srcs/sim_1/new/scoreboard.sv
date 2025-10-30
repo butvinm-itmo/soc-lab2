@@ -41,12 +41,6 @@ module scoreboard(
 
     logic [1:0] state;
 
-    integer log_file;
-
-    initial begin
-        log_file = $fopen("monitor_log.txt", "a");
-    end
-
     // Function to compute matrix multiplication B*B and then A + B*B
     function automatic logic [15:0] compute_expected(int idx);
         logic [15:0] bb_matrix[9];
@@ -152,33 +146,24 @@ module scoreboard(
             end
 
             $display("\n=== DETAILED COMPARISON ===");
-            $fwrite(log_file, "=== RESULT COMPARISON ===\n");
 
             for (int i = 0; i < 9; i++) begin
                 expected = expected_matrix[i];
                 $display("[%d] expected=%0d, result=%0d", i, expected, result_matrix[i]);
-                $fwrite(log_file, "[%0d] expected=%0d (0x%h), result=%0d (0x%h)",
-                        i, expected, expected, result_matrix[i], result_matrix[i]);
 
                 if (expected != result_matrix[i]) begin
                     $display("INCORRECT RESULT IN [%d] elem: expected=%0d, got=%0d",
                             i, expected, result_matrix[i]);
-                    $fwrite(log_file, " - FAILED\n");
                     test_passed = 0;
-                end else begin
-                    $fwrite(log_file, " - PASSED\n");
                 end
             end
 
             if (test_passed) begin
                 $display("\n=== TEST RESULT: PASSED ===\n");
-                $fwrite(log_file, "\n=== TEST RESULT: PASSED ===\n");
             end else begin
                 $display("\n=== TEST RESULT: FAILED ===\n");
-                $fwrite(log_file, "\n=== TEST RESULT: FAILED ===\n");
             end
 
-            $fclose(log_file);
             $finish();
         end
     end
