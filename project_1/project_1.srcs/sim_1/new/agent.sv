@@ -27,28 +27,13 @@ module agent (
     input [15:0] gpio_led
 );
 
-    logic [15:0] tmp_sequence[9];
-    logic [15:0] result_sequence[9];
-    logic [15:0] matrix_a[9];
-    logic [15:0] matrix_b[9];
+    logic [15:0] tmp_sequence[49];
+    logic [15:0] result_sequence[49];
+    logic [15:0] matrix_a[49];
+    logic [15:0] matrix_b[49];
     logic sequence_valid, sequence_send, result_valid;
     logic matrix_a_stored, matrix_b_stored;
 
-    // Store matrices as they come from sequencer
-    always_ff @(posedge clk_i) begin
-        if (rst_i) begin
-            matrix_a_stored <= 0;
-            matrix_b_stored <= 0;
-        end else if (sequence_valid) begin
-            if (!matrix_a_stored) begin
-                matrix_a <= tmp_sequence;
-                matrix_a_stored <= 1;
-            end else if (!matrix_b_stored) begin
-                matrix_b <= tmp_sequence;
-                matrix_b_stored <= 1;
-            end
-        end
-    end
 
     sequencer sequencer_impl (
         .clk_i(clk_i),

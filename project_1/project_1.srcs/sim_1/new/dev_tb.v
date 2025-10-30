@@ -21,7 +21,7 @@
 
 
 module dev_tb ();
-    localparam MATRIX_SIZE = 9;
+    localparam MATRIX_SIZE = 49;
 
     wire [15:0] gpio_switch;
     wire [15:0] gpio_led;

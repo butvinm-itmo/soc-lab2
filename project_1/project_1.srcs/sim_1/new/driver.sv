@@ -24,7 +24,7 @@ module driver (
     input clk,
     input rst,
 
-    input [15:0] sequence_i[9],
+    input [15:0] sequence_i[49],
     input sequence_valid,
     output logic sequence_send,
 
@@ -37,15 +37,15 @@ module driver (
     logic state;
     logic receive;
 
-    logic [15:0] temp_matrix[9];
-    logic [3:0] temp_idx;
+    logic [15:0] temp_matrix[49];
+    logic [5:0] temp_idx;
 
     wire send_vld = gpio_switch[15];
     wire receive_vld = gpio_led[15];
 
     always_ff @(posedge clk) begin
         if (rst) begin
-            for (int i = 0; i < 9; i++) begin
+            for (int i = 0; i < 49; i++) begin
                 temp_matrix[i] <= '0;
             end
             temp_idx <= 0;
@@ -63,7 +63,7 @@ module driver (
                     sequence_send <= 0;
                 end
                 SEND_SEQ: begin
-                    if (temp_idx == 9) begin
+                    if (temp_idx == 49) begin
                         state <= WAIT_SEQ;
                         sequence_send <= 1;
                     end else begin

@@ -24,10 +24,10 @@ module scoreboard(
     input clk_i,
     input rst_i,
 
-    input [15:0] matrix_input[9],
+    input [15:0] matrix_input[49],
     input matrix_vld,
 
-    input[15:0] result_matrix[9],
+    input[15:0] result_matrix[49],
     input result_vld
 );
 
@@ -36,30 +36,30 @@ module scoreboard(
     localparam WAIT_RESULT = 2;
     localparam CHECK = 3;
 
-    logic [15:0] matrix_a [9];
-    logic [15:0] matrix_b [9];
+    logic [15:0] matrix_a [49];
+    logic [15:0] matrix_b [49];
 
     logic [1:0] state;
 
     // Function to compute matrix multiplication B*B and then A + B*B
     function automatic logic [15:0] compute_expected(int idx);
-        logic [15:0] bb_matrix[9];
-        logic [15:0] result[9];
+        logic [15:0] bb_matrix[49];
+        logic [15:0] result[49];
         int row, col;
 
-        // Compute B*B (3x3 matrix multiplication)
-        for (int i = 0; i < 3; i++) begin
-            for (int j = 0; j < 3; j++) begin
-                bb_matrix[i*3 + j] = 0;
-                for (int k = 0; k < 3; k++) begin
-                    bb_matrix[i*3 + j] = bb_matrix[i*3 + j] +
-                                         (matrix_b[i*3 + k] * matrix_b[k*3 + j]);
+        // Compute B*B (7x7 matrix multiplication)
+        for (int i = 0; i < 7; i++) begin
+            for (int j = 0; j < 7; j++) begin
+                bb_matrix[i*7 + j] = 0;
+                for (int k = 0; k < 7; k++) begin
+                    bb_matrix[i*7 + j] = bb_matrix[i*7 + j] +
+                                         (matrix_b[i*7 + k] * matrix_b[k*7 + j]);
                 end
             end
         end
 
         // Compute A + B*B
-        for (int i = 0; i < 9; i++) begin
+        for (int i = 0; i < 49; i++) begin
             result[i] = matrix_a[i] + bb_matrix[i];
         end
 
@@ -69,10 +69,10 @@ module scoreboard(
     always_ff @( posedge clk_i) begin
         if (rst_i) begin
             state <= WAIT_A;
-            for (int i = 0; i < 9; i++) begin
+            for (int i = 0; i < 49; i++) begin
                 matrix_a[i] <=0;
             end
-            for (int i = 0; i < 9; i++) begin
+            for (int i = 0; i < 49; i++) begin
                 matrix_b[i] <=0;
             end
         end else if (state == WAIT_A) begin
@@ -89,65 +89,75 @@ module scoreboard(
             if (result_vld) state <= CHECK;
         end else begin
             logic [15:0] expected;
-            logic [15:0] expected_matrix[9];
-            logic [15:0] bb_matrix[9];
+            logic [15:0] expected_matrix[49];
+            logic [15:0] bb_matrix[49];
             logic test_passed;
             test_passed = 1;
 
             // Compute B*B matrix
-            for (int i = 0; i < 3; i++) begin
-                for (int j = 0; j < 3; j++) begin
-                    bb_matrix[i*3 + j] = 0;
-                    for (int k = 0; k < 3; k++) begin
-                        bb_matrix[i*3 + j] = bb_matrix[i*3 + j] +
-                                             (matrix_b[i*3 + k] * matrix_b[k*3 + j]);
+            for (int i = 0; i < 7; i++) begin
+                for (int j = 0; j < 7; j++) begin
+                    bb_matrix[i*7 + j] = 0;
+                    for (int k = 0; k < 7; k++) begin
+                        bb_matrix[i*7 + j] = bb_matrix[i*7 + j] +
+                                             (matrix_b[i*7 + k] * matrix_b[k*7 + j]);
                     end
                 end
             end
 
             // Compute expected result (A + B*B)
-            for (int i = 0; i < 9; i++) begin
+            for (int i = 0; i < 49; i++) begin
                 expected_matrix[i] = matrix_a[i] + bb_matrix[i];
             end
 
             // Display Matrix A
-            $display("\n=== INPUT MATRIX A (3x3) ===");
-            for (int i = 0; i < 3; i++) begin
-                $display("  [%0d %0d %0d]",
-                    matrix_a[i*3 + 0], matrix_a[i*3 + 1], matrix_a[i*3 + 2]);
+            $display("\n=== INPUT MATRIX A (7x7) ===");
+            for (int i = 0; i < 7; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]",
+                    matrix_a[i*7 + 0], matrix_a[i*7 + 1], matrix_a[i*7 + 2],
+                    matrix_a[i*7 + 3], matrix_a[i*7 + 4], matrix_a[i*7 + 5],
+                    matrix_a[i*7 + 6]);
             end
 
             // Display Matrix B
-            $display("\n=== INPUT MATRIX B (3x3) ===");
-            for (int i = 0; i < 3; i++) begin
-                $display("  [%0d %0d %0d]",
-                    matrix_b[i*3 + 0], matrix_b[i*3 + 1], matrix_b[i*3 + 2]);
+            $display("\n=== INPUT MATRIX B (7x7) ===");
+            for (int i = 0; i < 7; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]",
+                    matrix_b[i*7 + 0], matrix_b[i*7 + 1], matrix_b[i*7 + 2],
+                    matrix_b[i*7 + 3], matrix_b[i*7 + 4], matrix_b[i*7 + 5],
+                    matrix_b[i*7 + 6]);
             end
 
             // Display B*B
-            $display("\n=== EXPECTED B*B (3x3) ===");
-            for (int i = 0; i < 3; i++) begin
-                $display("  [%0d %0d %0d]",
-                    bb_matrix[i*3 + 0], bb_matrix[i*3 + 1], bb_matrix[i*3 + 2]);
+            $display("\n=== EXPECTED B*B (7x7) ===");
+            for (int i = 0; i < 7; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]",
+                    bb_matrix[i*7 + 0], bb_matrix[i*7 + 1], bb_matrix[i*7 + 2],
+                    bb_matrix[i*7 + 3], bb_matrix[i*7 + 4], bb_matrix[i*7 + 5],
+                    bb_matrix[i*7 + 6]);
             end
 
             // Display Expected Result (A + B*B)
-            $display("\n=== EXPECTED RESULT: A + B*B (3x3) ===");
-            for (int i = 0; i < 3; i++) begin
-                $display("  [%0d %0d %0d]",
-                    expected_matrix[i*3 + 0], expected_matrix[i*3 + 1], expected_matrix[i*3 + 2]);
+            $display("\n=== EXPECTED RESULT: A + B*B (7x7) ===");
+            for (int i = 0; i < 7; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]",
+                    expected_matrix[i*7 + 0], expected_matrix[i*7 + 1], expected_matrix[i*7 + 2],
+                    expected_matrix[i*7 + 3], expected_matrix[i*7 + 4], expected_matrix[i*7 + 5],
+                    expected_matrix[i*7 + 6]);
             end
 
             // Display Actual Result from DUT
-            $display("\n=== ACTUAL RESULT FROM DUT (3x3) ===");
-            for (int i = 0; i < 3; i++) begin
-                $display("  [%0d %0d %0d]",
-                    result_matrix[i*3 + 0], result_matrix[i*3 + 1], result_matrix[i*3 + 2]);
+            $display("\n=== ACTUAL RESULT FROM DUT (7x7) ===");
+            for (int i = 0; i < 7; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]",
+                    result_matrix[i*7 + 0], result_matrix[i*7 + 1], result_matrix[i*7 + 2],
+                    result_matrix[i*7 + 3], result_matrix[i*7 + 4], result_matrix[i*7 + 5],
+                    result_matrix[i*7 + 6]);
             end
 
             $display("\n=== DETAILED COMPARISON ===");
 
-            for (int i = 0; i < 9; i++) begin
+            for (int i = 0; i < 49; i++) begin
                 expected = expected_matrix[i];
                 $display("[%d] expected=%0d, result=%0d", i, expected, result_matrix[i]);
 

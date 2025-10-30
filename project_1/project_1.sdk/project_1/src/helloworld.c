@@ -52,7 +52,7 @@
 
 #include "platform.h"
 
-#define MAT_DIM 3
+#define MAT_DIM 7
 #define MAT_SIZE (MAT_DIM * MAT_DIM)
 #define GPIO_OUT 0x40000000
 #define GPIO_IN 0x40000008
