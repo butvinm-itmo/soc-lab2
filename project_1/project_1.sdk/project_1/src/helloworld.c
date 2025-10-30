@@ -57,8 +57,8 @@
 #define GPIO_OUT 0x40000000
 #define GPIO_IN 0x40000008
 
-int get_value() {
-    int value = Xil_In16(GPIO_IN);
+uint16_t get_value() {
+    uint16_t value = Xil_In16(GPIO_IN);
     while ((value & 0x8000) == 0) {
         value = Xil_In16(GPIO_IN);
     }
@@ -70,13 +70,19 @@ int get_value() {
     return value;
 }
 
-void send_value(int value) {
-    value = value | 0x4000;
-    Xil_Out16(GPIO_OUT, value);
+void send_value(uint16_t value) {
+    // Send low byte
+    uint16_t low_byte = (value & 0x00FF) | 0x4000;
+    Xil_Out16(GPIO_OUT, low_byte);
+    Xil_Out16(GPIO_OUT, 0x0000);
+
+    // Send high byte
+    uint16_t high_byte = ((value >> 8) & 0x00FF) | 0x4000;
+    Xil_Out16(GPIO_OUT, high_byte);
     Xil_Out16(GPIO_OUT, 0x0000);
 }
 
-void mat_mul(uint8_t A[MAT_DIM][MAT_DIM], uint8_t B[MAT_DIM][MAT_DIM], uint8_t C[MAT_DIM][MAT_DIM]) {
+void mat_mul(uint16_t A[MAT_DIM][MAT_DIM], uint16_t B[MAT_DIM][MAT_DIM], uint16_t C[MAT_DIM][MAT_DIM]) {
     for (size_t i = 0; i < MAT_DIM; i++) {
         for (size_t j = 0; j < MAT_DIM; j++) {
             C[i][j] = 0;
@@ -87,7 +93,7 @@ void mat_mul(uint8_t A[MAT_DIM][MAT_DIM], uint8_t B[MAT_DIM][MAT_DIM], uint8_t C
     }
 }
 
-void mat_add(uint8_t A[MAT_DIM][MAT_DIM], uint8_t B[MAT_DIM][MAT_DIM], uint8_t C[MAT_DIM][MAT_DIM]) {
+void mat_add(uint16_t A[MAT_DIM][MAT_DIM], uint16_t B[MAT_DIM][MAT_DIM], uint16_t C[MAT_DIM][MAT_DIM]) {
     for (size_t i = 0; i < MAT_DIM; i++) {
         for (size_t j = 0; j < MAT_DIM; j++) {
             C[i][j] = A[i][j] + B[i][j];
@@ -98,9 +104,9 @@ void mat_add(uint8_t A[MAT_DIM][MAT_DIM], uint8_t B[MAT_DIM][MAT_DIM], uint8_t C
 int main() {
     init_platform();
 
-    uint8_t A[MAT_DIM][MAT_DIM];
-    uint8_t B[MAT_DIM][MAT_DIM];
-    uint8_t C[MAT_DIM][MAT_DIM]; // A + B*B
+    uint16_t A[MAT_DIM][MAT_DIM];
+    uint16_t B[MAT_DIM][MAT_DIM];
+    uint16_t C[MAT_DIM][MAT_DIM]; // A + B*B
 
     // Receive matrix A
     for (size_t i = 0; i < MAT_DIM; i++) {
@@ -117,7 +123,7 @@ int main() {
     }
 
     // Compute B*B
-    uint8_t BB[MAT_DIM][MAT_DIM];
+    uint16_t BB[MAT_DIM][MAT_DIM];
     mat_mul(B, B, BB);
 
     // Compute A + B*B

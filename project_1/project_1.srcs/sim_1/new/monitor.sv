@@ -33,11 +33,14 @@ module monitor (
     input inputs_valid
 );
 
-    localparam RECEIVE = 0;
-    localparam DELAY = 1;
+    localparam RECEIVE_LOW = 0;
+    localparam DELAY_LOW = 1;
+    localparam RECEIVE_HIGH = 2;
+    localparam DELAY_HIGH = 3;
 
     logic [3:0] temp_idx;
-    logic state;
+    logic [1:0] state;
+    logic [7:0] low_byte;
 
     integer log_file;
     integer start_time;
@@ -58,9 +61,10 @@ module monitor (
     always_ff @(posedge clk) begin
         if (rst) begin
             temp_idx <= 0;
-            state <= RECEIVE;
+            state <= RECEIVE_LOW;
             algorithm_started <= 0;
             inputs_logged <= 0;
+            low_byte <= 0;
             for (int i = 0; i < 9; i++) begin
                 result_matrix_o[i] <= '0;
             end
@@ -80,24 +84,41 @@ module monitor (
                 inputs_logged <= 1;
             end
 
-            if (state == RECEIVE) begin
-                if (gpio_led[14]) begin
-                    // Mark algorithm start on first output
-                    if (!algorithm_started) begin
-                        start_time = $time;
-                        algorithm_started <= 1;
-                        $fwrite(log_file, "Algorithm started at time: %0t ns\n\n", start_time);
-                    end
+            case (state)
+                RECEIVE_LOW: begin
+                    if (gpio_led[14]) begin
+                        // Mark algorithm start on first output
+                        if (!algorithm_started) begin
+                            start_time = $time;
+                            algorithm_started <= 1;
+                            $fwrite(log_file, "Algorithm started at time: %0t ns\n\n", start_time);
+                        end
 
-                    result_matrix_o[temp_idx] <= gpio_led[7:0];
-                    temp_idx <= temp_idx + 1'b1;
-                    state <= DELAY;
+                        low_byte <= gpio_led[7:0];
+                        state <= DELAY_LOW;
+                    end
                 end
-            end else begin
-                if (!gpio_led[14]) begin
-                    state <= RECEIVE;
+
+                DELAY_LOW: begin
+                    if (!gpio_led[14]) begin
+                        state <= RECEIVE_HIGH;
+                    end
                 end
-            end
+
+                RECEIVE_HIGH: begin
+                    if (gpio_led[14]) begin
+                        result_matrix_o[temp_idx] <= {gpio_led[7:0], low_byte};
+                        temp_idx <= temp_idx + 1'b1;
+                        state <= DELAY_HIGH;
+                    end
+                end
+
+                DELAY_HIGH: begin
+                    if (!gpio_led[14]) begin
+                        state <= RECEIVE_LOW;
+                    end
+                end
+            endcase
 
             // Log outputs when all results received
             if (temp_idx == 9 && algorithm_started) begin
