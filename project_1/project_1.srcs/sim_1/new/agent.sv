@@ -29,25 +29,7 @@ module agent (
 
     logic [15:0] tmp_sequence[49];
     logic [15:0] result_sequence[49];
-    logic [15:0] matrix_a[49];
-    logic [15:0] matrix_b[49];
     logic sequence_valid, sequence_send, result_valid;
-    logic matrix_a_stored, matrix_b_stored;
-
-    always_ff @(posedge clk_i) begin
-        if (rst_i) begin
-            matrix_a_stored <= 0;
-            matrix_b_stored <= 0;
-        end else if (sequence_valid) begin
-            if (!matrix_a_stored) begin
-                matrix_a <= tmp_sequence;
-                matrix_a_stored <= 1;
-            end else if (!matrix_b_stored) begin
-                matrix_b <= tmp_sequence;
-                matrix_b_stored <= 1;
-            end
-        end
-    end
 
     sequencer sequencer_impl (
         .clk_i(clk_i),
@@ -75,11 +57,7 @@ module agent (
         .gpio_led(gpio_led),
 
         .result_matrix_o(result_sequence),
-        .result_valid(result_valid),
-
-        .input_matrix_a(matrix_a),
-        .input_matrix_b(matrix_b),
-        .inputs_valid  (matrix_b_stored)
+        .result_valid(result_valid)
     );
 
     scoreboard scoreboard_impl (

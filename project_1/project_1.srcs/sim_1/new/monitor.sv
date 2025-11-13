@@ -26,11 +26,7 @@ module monitor (
     input [15:0] gpio_led,
 
     output logic [15:0] result_matrix_o[49],
-    output result_valid,
-
-    input [15:0] input_matrix_a[49],
-    input [15:0] input_matrix_b[49],
-    input inputs_valid
+    output result_valid
 );
 
     localparam RECEIVE_LOW = 0;
