@@ -19,6 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "tb_defines.svh"
 
 module agent (
     input clk_i,
@@ -27,8 +28,8 @@ module agent (
     input [15:0] gpio_led
 );
 
-    logic [15:0] tmp_sequence[49];
-    logic [15:0] result_sequence[49];
+    logic [15:0] tmp_sequence[`MATRIX_SIZE];
+    logic [15:0] result_sequence[`MATRIX_SIZE];
     logic sequence_valid, sequence_send, result_valid;
 
     sequencer sequencer_impl (

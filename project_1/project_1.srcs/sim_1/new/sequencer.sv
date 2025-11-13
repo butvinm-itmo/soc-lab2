@@ -19,11 +19,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "tb_defines.svh"
 
 module sequencer (
     input clk_i,
     input rst_i,
-    output logic [15:0] sequence_o[49],
+    output logic [15:0] sequence_o[`MATRIX_SIZE],
     output logic sequence_valid_o,
     input sequence_send_i
 );
@@ -31,8 +32,8 @@ module sequencer (
     localparam WAIT = 1;
     localparam SEND_B = 2;
 
-    logic [15:0] matrix_a[49];
-    logic [15:0] matrix_b[49];
+    logic [15:0] matrix_a[`MATRIX_SIZE];
+    logic [15:0] matrix_b[`MATRIX_SIZE];
 
     logic [ 1:0] state;
 
@@ -54,7 +55,7 @@ module sequencer (
     always_ff @(posedge clk_i) begin
         if (rst_i) begin
             state <= SEND_A;
-            for (int i = 0; i < 49; i++) begin
+            for (int i = 0; i < `MATRIX_SIZE; i++) begin
                 sequence_o[i] <= '0;
                 matrix_a[i]   <= gen_random_value();
                 matrix_b[i]   <= gen_random_value();

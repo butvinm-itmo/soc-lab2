@@ -19,13 +19,14 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "tb_defines.svh"
 
 module monitor (
     input clk,
     input rst,
     input [15:0] gpio_led,
 
-    output logic [15:0] result_matrix_o[49],
+    output logic [15:0] result_matrix_o[`MATRIX_SIZE],
     output result_valid
 );
 
@@ -43,7 +44,7 @@ module monitor (
             temp_idx <= 0;
             state <= RECEIVE_LOW;
             low_byte <= 0;
-            for (int i = 0; i < 49; i++) begin
+            for (int i = 0; i < `MATRIX_SIZE; i++) begin
                 result_matrix_o[i] <= '0;
             end
         end else begin
@@ -78,6 +79,6 @@ module monitor (
         end
     end
 
-    assign result_valid = (temp_idx == 49) ? 1 : 0;
+    assign result_valid = (temp_idx == `MATRIX_SIZE) ? 1 : 0;
 
 endmodule

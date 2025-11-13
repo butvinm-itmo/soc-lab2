@@ -19,12 +19,13 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "tb_defines.svh"
 
 module driver (
     input clk,
     input rst,
 
-    input [15:0] sequence_i[49],
+    input [15:0] sequence_i[`MATRIX_SIZE],
     input sequence_valid,
     output logic sequence_send,
 
@@ -37,7 +38,7 @@ module driver (
     logic state;
     logic receive;
 
-    logic [15:0] temp_matrix[49];
+    logic [15:0] temp_matrix[`MATRIX_SIZE];
     logic [5:0] temp_idx;
 
     wire send_vld = gpio_switch[15];
@@ -45,7 +46,7 @@ module driver (
 
     always_ff @(posedge clk) begin
         if (rst) begin
-            for (int i = 0; i < 49; i++) begin
+            for (int i = 0; i < `MATRIX_SIZE; i++) begin
                 temp_matrix[i] <= '0;
             end
             temp_idx <= 0;
@@ -63,7 +64,7 @@ module driver (
                     sequence_send <= 0;
                 end
                 SEND_SEQ: begin
-                    if (temp_idx == 49) begin
+                    if (temp_idx == `MATRIX_SIZE) begin
                         state <= WAIT_SEQ;
                         sequence_send <= 1;
                     end else begin

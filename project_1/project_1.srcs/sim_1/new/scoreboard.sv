@@ -19,15 +19,16 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "tb_defines.svh"
 
 module scoreboard (
     input clk_i,
     input rst_i,
 
-    input [15:0] matrix_input[49],
+    input [15:0] matrix_input[`MATRIX_SIZE],
     input matrix_vld,
 
-    input [15:0] result_matrix[49],
+    input [15:0] result_matrix[`MATRIX_SIZE],
     input result_vld
 );
 
@@ -36,8 +37,8 @@ module scoreboard (
     localparam WAIT_RESULT = 2;
     localparam CHECK = 3;
 
-    logic [15:0] matrix_a[49];
-    logic [15:0] matrix_b[49];
+    logic [15:0] matrix_a[`MATRIX_SIZE];
+    logic [15:0] matrix_b[`MATRIX_SIZE];
 
     logic [ 1:0] state;
 
@@ -54,20 +55,20 @@ module scoreboard (
     end
 
     function automatic logic [15:0] compute_expected(int idx);
-        logic [15:0] bb_matrix[49];
-        logic [15:0] result[49];
+        logic [15:0] bb_matrix[`MATRIX_SIZE];
+        logic [15:0] result[`MATRIX_SIZE];
         int row, col;
 
-        for (int i = 0; i < 7; i++) begin
-            for (int j = 0; j < 7; j++) begin
-                bb_matrix[i*7+j] = 0;
-                for (int k = 0; k < 7; k++) begin
-                    bb_matrix[i*7+j] = bb_matrix[i*7+j] + (matrix_b[i*7+k] * matrix_b[k*7+j]);
+        for (int i = 0; i < `MATRIX_DIM; i++) begin
+            for (int j = 0; j < `MATRIX_DIM; j++) begin
+                bb_matrix[i*`MATRIX_DIM+j] = 0;
+                for (int k = 0; k < `MATRIX_DIM; k++) begin
+                    bb_matrix[i*`MATRIX_DIM+j] = bb_matrix[i*`MATRIX_DIM+j] + (matrix_b[i*`MATRIX_DIM+k] * matrix_b[k*`MATRIX_DIM+j]);
                 end
             end
         end
 
-        for (int i = 0; i < 49; i++) begin
+        for (int i = 0; i < `MATRIX_SIZE; i++) begin
             result[i] = matrix_a[i] + bb_matrix[i];
         end
 
@@ -77,10 +78,10 @@ module scoreboard (
     always_ff @(posedge clk_i) begin
         if (rst_i) begin
             state <= WAIT_A;
-            for (int i = 0; i < 49; i++) begin
+            for (int i = 0; i < `MATRIX_SIZE; i++) begin
                 matrix_a[i] <= 0;
             end
-            for (int i = 0; i < 49; i++) begin
+            for (int i = 0; i < `MATRIX_SIZE; i++) begin
                 matrix_b[i] <= 0;
             end
         end else if (state == WAIT_A) begin
@@ -101,72 +102,72 @@ module scoreboard (
             end
         end else begin
             logic [15:0] expected;
-            logic [15:0] expected_matrix[49];
-            logic [15:0] bb_matrix[49];
+            logic [15:0] expected_matrix[`MATRIX_SIZE];
+            logic [15:0] bb_matrix[`MATRIX_SIZE];
             logic test_passed;
             test_passed = 1;
 
-            for (int i = 0; i < 7; i++) begin
-                for (int j = 0; j < 7; j++) begin
-                    bb_matrix[i*7+j] = 0;
-                    for (int k = 0; k < 7; k++) begin
-                        bb_matrix[i*7+j] = bb_matrix[i*7+j] + (matrix_b[i*7+k] * matrix_b[k*7+j]);
+            for (int i = 0; i < `MATRIX_DIM; i++) begin
+                for (int j = 0; j < `MATRIX_DIM; j++) begin
+                    bb_matrix[i*`MATRIX_DIM+j] = 0;
+                    for (int k = 0; k < `MATRIX_DIM; k++) begin
+                        bb_matrix[i*`MATRIX_DIM+j] = bb_matrix[i*`MATRIX_DIM+j] + (matrix_b[i*`MATRIX_DIM+k] * matrix_b[k*`MATRIX_DIM+j]);
                     end
                 end
             end
 
-            for (int i = 0; i < 49; i++) begin
+            for (int i = 0; i < `MATRIX_SIZE; i++) begin
                 expected_matrix[i] = matrix_a[i] + bb_matrix[i];
             end
 
-            $display("\nInput Matrix A (7x7):");
-            $fwrite(log_file, "\nInput Matrix A (7x7):\n");
-            for (int i = 0; i < 7; i++) begin
-                $display("  [%0d %0d %0d %0d %0d %0d %0d]", matrix_a[i*7+0], matrix_a[i*7+1],
-                         matrix_a[i*7+2], matrix_a[i*7+3], matrix_a[i*7+4], matrix_a[i*7+5],
-                         matrix_a[i*7+6]);
-                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", matrix_a[i*7+0], matrix_a[i*7+1],
-                         matrix_a[i*7+2], matrix_a[i*7+3], matrix_a[i*7+4], matrix_a[i*7+5],
-                         matrix_a[i*7+6]);
+            $display("\nInput Matrix A (%0dx%0d):", `MATRIX_DIM, `MATRIX_DIM);
+            $fwrite(log_file, "\nInput Matrix A (%0dx%0d):\n", `MATRIX_DIM, `MATRIX_DIM);
+            for (int i = 0; i < `MATRIX_DIM; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]", matrix_a[i*`MATRIX_DIM+0], matrix_a[i*`MATRIX_DIM+1],
+                         matrix_a[i*`MATRIX_DIM+2], matrix_a[i*`MATRIX_DIM+3], matrix_a[i*`MATRIX_DIM+4], matrix_a[i*`MATRIX_DIM+5],
+                         matrix_a[i*`MATRIX_DIM+6]);
+                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", matrix_a[i*`MATRIX_DIM+0], matrix_a[i*`MATRIX_DIM+1],
+                         matrix_a[i*`MATRIX_DIM+2], matrix_a[i*`MATRIX_DIM+3], matrix_a[i*`MATRIX_DIM+4], matrix_a[i*`MATRIX_DIM+5],
+                         matrix_a[i*`MATRIX_DIM+6]);
             end
 
-            $display("\nInput Matrix B (7x7):");
-            $fwrite(log_file, "\nInput Matrix B (7x7):\n");
-            for (int i = 0; i < 7; i++) begin
-                $display("  [%0d %0d %0d %0d %0d %0d %0d]", matrix_b[i*7+0], matrix_b[i*7+1],
-                         matrix_b[i*7+2], matrix_b[i*7+3], matrix_b[i*7+4], matrix_b[i*7+5],
-                         matrix_b[i*7+6]);
-                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", matrix_b[i*7+0], matrix_b[i*7+1],
-                         matrix_b[i*7+2], matrix_b[i*7+3], matrix_b[i*7+4], matrix_b[i*7+5],
-                         matrix_b[i*7+6]);
+            $display("\nInput Matrix B (%0dx%0d):", `MATRIX_DIM, `MATRIX_DIM);
+            $fwrite(log_file, "\nInput Matrix B (%0dx%0d):\n", `MATRIX_DIM, `MATRIX_DIM);
+            for (int i = 0; i < `MATRIX_DIM; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]", matrix_b[i*`MATRIX_DIM+0], matrix_b[i*`MATRIX_DIM+1],
+                         matrix_b[i*`MATRIX_DIM+2], matrix_b[i*`MATRIX_DIM+3], matrix_b[i*`MATRIX_DIM+4], matrix_b[i*`MATRIX_DIM+5],
+                         matrix_b[i*`MATRIX_DIM+6]);
+                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", matrix_b[i*`MATRIX_DIM+0], matrix_b[i*`MATRIX_DIM+1],
+                         matrix_b[i*`MATRIX_DIM+2], matrix_b[i*`MATRIX_DIM+3], matrix_b[i*`MATRIX_DIM+4], matrix_b[i*`MATRIX_DIM+5],
+                         matrix_b[i*`MATRIX_DIM+6]);
             end
 
-            $display("\nExpected Result: A + B*B (7x7):");
-            $fwrite(log_file, "\nExpected Result: A + B*B (7x7):\n");
-            for (int i = 0; i < 7; i++) begin
-                $display("  [%0d %0d %0d %0d %0d %0d %0d]", expected_matrix[i*7+0],
-                         expected_matrix[i*7+1], expected_matrix[i*7+2], expected_matrix[i*7+3],
-                         expected_matrix[i*7+4], expected_matrix[i*7+5], expected_matrix[i*7+6]);
-                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", expected_matrix[i*7+0],
-                         expected_matrix[i*7+1], expected_matrix[i*7+2], expected_matrix[i*7+3],
-                         expected_matrix[i*7+4], expected_matrix[i*7+5], expected_matrix[i*7+6]);
+            $display("\nExpected Result: A + B*B (%0dx%0d):", `MATRIX_DIM, `MATRIX_DIM);
+            $fwrite(log_file, "\nExpected Result: A + B*B (%0dx%0d):\n", `MATRIX_DIM, `MATRIX_DIM);
+            for (int i = 0; i < `MATRIX_DIM; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]", expected_matrix[i*`MATRIX_DIM+0],
+                         expected_matrix[i*`MATRIX_DIM+1], expected_matrix[i*`MATRIX_DIM+2], expected_matrix[i*`MATRIX_DIM+3],
+                         expected_matrix[i*`MATRIX_DIM+4], expected_matrix[i*`MATRIX_DIM+5], expected_matrix[i*`MATRIX_DIM+6]);
+                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", expected_matrix[i*`MATRIX_DIM+0],
+                         expected_matrix[i*`MATRIX_DIM+1], expected_matrix[i*`MATRIX_DIM+2], expected_matrix[i*`MATRIX_DIM+3],
+                         expected_matrix[i*`MATRIX_DIM+4], expected_matrix[i*`MATRIX_DIM+5], expected_matrix[i*`MATRIX_DIM+6]);
             end
 
-            $display("\nActual Result From DUT (7x7):");
-            $fwrite(log_file, "\nActual Result From DUT (7x7):\n");
-            for (int i = 0; i < 7; i++) begin
-                $display("  [%0d %0d %0d %0d %0d %0d %0d]", result_matrix[i*7+0],
-                         result_matrix[i*7+1], result_matrix[i*7+2], result_matrix[i*7+3],
-                         result_matrix[i*7+4], result_matrix[i*7+5], result_matrix[i*7+6]);
-                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", result_matrix[i*7+0],
-                         result_matrix[i*7+1], result_matrix[i*7+2], result_matrix[i*7+3],
-                         result_matrix[i*7+4], result_matrix[i*7+5], result_matrix[i*7+6]);
+            $display("\nActual Result From DUT (%0dx%0d):", `MATRIX_DIM, `MATRIX_DIM);
+            $fwrite(log_file, "\nActual Result From DUT (%0dx%0d):\n", `MATRIX_DIM, `MATRIX_DIM);
+            for (int i = 0; i < `MATRIX_DIM; i++) begin
+                $display("  [%0d %0d %0d %0d %0d %0d %0d]", result_matrix[i*`MATRIX_DIM+0],
+                         result_matrix[i*`MATRIX_DIM+1], result_matrix[i*`MATRIX_DIM+2], result_matrix[i*`MATRIX_DIM+3],
+                         result_matrix[i*`MATRIX_DIM+4], result_matrix[i*`MATRIX_DIM+5], result_matrix[i*`MATRIX_DIM+6]);
+                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", result_matrix[i*`MATRIX_DIM+0],
+                         result_matrix[i*`MATRIX_DIM+1], result_matrix[i*`MATRIX_DIM+2], result_matrix[i*`MATRIX_DIM+3],
+                         result_matrix[i*`MATRIX_DIM+4], result_matrix[i*`MATRIX_DIM+5], result_matrix[i*`MATRIX_DIM+6]);
             end
 
             $display("\nDetailed Comparison:");
             $fwrite(log_file, "\nDetailed Comparison:\n");
 
-            for (int i = 0; i < 49; i++) begin
+            for (int i = 0; i < `MATRIX_SIZE; i++) begin
                 expected = expected_matrix[i];
                 $display("[%d] expected=%0d, result=%0d", i, expected, result_matrix[i]);
                 $fwrite(log_file, "[%d] expected=%0d, result=%0d", i, expected, result_matrix[i]);
