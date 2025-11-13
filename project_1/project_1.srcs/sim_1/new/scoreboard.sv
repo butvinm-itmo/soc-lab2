@@ -41,6 +41,16 @@ module scoreboard (
 
     logic [ 1:0] state;
 
+    integer log_file;
+
+    initial begin
+        log_file = $fopen("scoreboard_log.txt", "w");
+        if (log_file == 0) begin
+            $display("Error: Could not open scoreboard log file");
+            $finish;
+        end
+    end
+
     function automatic logic [15:0] compute_expected(int idx);
         logic [15:0] bb_matrix[49];
         logic [15:0] result[49];
@@ -103,62 +113,82 @@ module scoreboard (
                 expected_matrix[i] = matrix_a[i] + bb_matrix[i];
             end
 
-            $display("\n=== INPUT MATRIX A (7x7) ===");
+            $display("\nINPUT MATRIX A (7x7):");
+            $fwrite(log_file, "\nINPUT MATRIX A (7x7):\n");
             for (int i = 0; i < 7; i++) begin
                 $display("  [%0d %0d %0d %0d %0d %0d %0d]", matrix_a[i*7+0], matrix_a[i*7+1],
                          matrix_a[i*7+2], matrix_a[i*7+3], matrix_a[i*7+4], matrix_a[i*7+5],
                          matrix_a[i*7+6]);
+                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", matrix_a[i*7+0], matrix_a[i*7+1],
+                         matrix_a[i*7+2], matrix_a[i*7+3], matrix_a[i*7+4], matrix_a[i*7+5],
+                         matrix_a[i*7+6]);
             end
 
-            $display("\n=== INPUT MATRIX B (7x7) ===");
+            $display("\nINPUT MATRIX B (7x7):");
+            $fwrite(log_file, "\nINPUT MATRIX B (7x7):\n");
             for (int i = 0; i < 7; i++) begin
                 $display("  [%0d %0d %0d %0d %0d %0d %0d]", matrix_b[i*7+0], matrix_b[i*7+1],
                          matrix_b[i*7+2], matrix_b[i*7+3], matrix_b[i*7+4], matrix_b[i*7+5],
                          matrix_b[i*7+6]);
+                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", matrix_b[i*7+0], matrix_b[i*7+1],
+                         matrix_b[i*7+2], matrix_b[i*7+3], matrix_b[i*7+4], matrix_b[i*7+5],
+                         matrix_b[i*7+6]);
             end
 
-            $display("\n=== EXPECTED B*B (7x7) ===");
-            for (int i = 0; i < 7; i++) begin
-                $display("  [%0d %0d %0d %0d %0d %0d %0d]", bb_matrix[i*7+0], bb_matrix[i*7+1],
-                         bb_matrix[i*7+2], bb_matrix[i*7+3], bb_matrix[i*7+4], bb_matrix[i*7+5],
-                         bb_matrix[i*7+6]);
-            end
-
-            $display("\n=== EXPECTED RESULT: A + B*B (7x7) ===");
+            $display("\nEXPECTED RESULT: A + B*B (7x7):");
+            $fwrite(log_file, "\nEXPECTED RESULT: A + B*B (7x7):\n");
             for (int i = 0; i < 7; i++) begin
                 $display("  [%0d %0d %0d %0d %0d %0d %0d]", expected_matrix[i*7+0],
                          expected_matrix[i*7+1], expected_matrix[i*7+2], expected_matrix[i*7+3],
                          expected_matrix[i*7+4], expected_matrix[i*7+5], expected_matrix[i*7+6]);
+                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", expected_matrix[i*7+0],
+                         expected_matrix[i*7+1], expected_matrix[i*7+2], expected_matrix[i*7+3],
+                         expected_matrix[i*7+4], expected_matrix[i*7+5], expected_matrix[i*7+6]);
             end
 
-            $display("\n=== ACTUAL RESULT FROM DUT (7x7) ===");
+            $display("\nACTUAL RESULT FROM DUT (7x7):");
+            $fwrite(log_file, "\nACTUAL RESULT FROM DUT (7x7):\n");
             for (int i = 0; i < 7; i++) begin
                 $display("  [%0d %0d %0d %0d %0d %0d %0d]", result_matrix[i*7+0],
                          result_matrix[i*7+1], result_matrix[i*7+2], result_matrix[i*7+3],
                          result_matrix[i*7+4], result_matrix[i*7+5], result_matrix[i*7+6]);
+                $fwrite(log_file, "  [%0d %0d %0d %0d %0d %0d %0d]\n", result_matrix[i*7+0],
+                         result_matrix[i*7+1], result_matrix[i*7+2], result_matrix[i*7+3],
+                         result_matrix[i*7+4], result_matrix[i*7+5], result_matrix[i*7+6]);
             end
 
-            $display("\n=== DETAILED COMPARISON ===");
+            $display("\nDETAILED COMPARISON:");
+            $fwrite(log_file, "\nDETAILED COMPARISON:\n");
 
             for (int i = 0; i < 49; i++) begin
                 expected = expected_matrix[i];
                 $display("[%d] expected=%0d, result=%0d", i, expected, result_matrix[i]);
+                $fwrite(log_file, "[%d] expected=%0d, result=%0d", i, expected, result_matrix[i]);
 
                 if (expected != result_matrix[i]) begin
                     $display("INCORRECT RESULT IN [%d] elem: expected=%0d, got=%0d", i, expected,
                              result_matrix[i]);
+                    $fwrite(log_file, " [MISMATCH]\n");
                     test_passed = 0;
+                end else begin
+                    $fwrite(log_file, "\n");
                 end
             end
 
             if (test_passed) begin
-                $display("\n=== TEST RESULT: PASSED ===\n");
+                $display("\nTEST RESULT: PASSED\n");
+                $fwrite(log_file, "\nTEST RESULT: PASSED\n\n");
             end else begin
-                $display("\n=== TEST RESULT: FAILED ===\n");
+                $display("\nTEST RESULT: FAILED\n");
+                $fwrite(log_file, "\nTEST RESULT: FAILED\n\n");
             end
 
             $finish();
         end
+    end
+
+    final begin
+        $fclose(log_file);
     end
 
 endmodule
