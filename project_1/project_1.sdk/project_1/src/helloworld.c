@@ -102,30 +102,32 @@ void mat_add(uint16_t A[MAT_DIM][MAT_DIM], uint16_t B[MAT_DIM][MAT_DIM], uint16_
 int main() {
     init_platform();
 
-    uint16_t A[MAT_DIM][MAT_DIM];
-    uint16_t B[MAT_DIM][MAT_DIM];
-    uint16_t C[MAT_DIM][MAT_DIM];
+    while (1) {
+        uint16_t A[MAT_DIM][MAT_DIM];
+        uint16_t B[MAT_DIM][MAT_DIM];
+        uint16_t C[MAT_DIM][MAT_DIM];
 
-    for (size_t i = 0; i < MAT_DIM; i++) {
-        for (size_t j = 0; j < MAT_DIM; j++) {
-            A[i][j] = get_value();
+        for (size_t i = 0; i < MAT_DIM; i++) {
+            for (size_t j = 0; j < MAT_DIM; j++) {
+                A[i][j] = get_value();
+            }
         }
-    }
 
-    for (size_t i = 0; i < MAT_DIM; i++) {
-        for (size_t j = 0; j < MAT_DIM; j++) {
-            B[i][j] = get_value();
+        for (size_t i = 0; i < MAT_DIM; i++) {
+            for (size_t j = 0; j < MAT_DIM; j++) {
+                B[i][j] = get_value();
+            }
         }
-    }
 
-    uint16_t BB[MAT_DIM][MAT_DIM];
-    mat_mul(B, B, BB);
+        uint16_t BB[MAT_DIM][MAT_DIM];
+        mat_mul(B, B, BB);
 
-    mat_add(A, BB, C);
+        mat_add(A, BB, C);
 
-    for (size_t i = 0; i < MAT_DIM; i++) {
-        for (size_t j = 0; j < MAT_DIM; j++) {
-            send_value(C[i][j]);
+        for (size_t i = 0; i < MAT_DIM; i++) {
+            for (size_t j = 0; j < MAT_DIM; j++) {
+                send_value(C[i][j]);
+            }
         }
     }
 

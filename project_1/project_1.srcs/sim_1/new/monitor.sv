@@ -27,7 +27,9 @@ module monitor (
     input [15:0] gpio_led,
 
     output logic [15:0] result_matrix_o[`MATRIX_SIZE],
-    output result_valid
+    output result_valid,
+
+    input test_done_i
 );
 
     localparam RECEIVE_LOW = 0;
@@ -48,34 +50,41 @@ module monitor (
                 result_matrix_o[i] <= '0;
             end
         end else begin
-            case (state)
-                RECEIVE_LOW: begin
-                    if (gpio_led[14]) begin
-                        low_byte <= gpio_led[7:0];
-                        state <= DELAY_LOW;
+            // Reset for next test when scoreboard signals completion
+            if (test_done_i) begin
+                temp_idx <= 0;
+                state <= RECEIVE_LOW;
+                low_byte <= 0;
+            end else begin
+                case (state)
+                    RECEIVE_LOW: begin
+                        if (gpio_led[14]) begin
+                            low_byte <= gpio_led[7:0];
+                            state <= DELAY_LOW;
+                        end
                     end
-                end
 
-                DELAY_LOW: begin
-                    if (!gpio_led[14]) begin
-                        state <= RECEIVE_HIGH;
+                    DELAY_LOW: begin
+                        if (!gpio_led[14]) begin
+                            state <= RECEIVE_HIGH;
+                        end
                     end
-                end
 
-                RECEIVE_HIGH: begin
-                    if (gpio_led[14]) begin
-                        result_matrix_o[temp_idx] <= {gpio_led[7:0], low_byte};
-                        temp_idx <= temp_idx + 1'b1;
-                        state <= DELAY_HIGH;
+                    RECEIVE_HIGH: begin
+                        if (gpio_led[14]) begin
+                            result_matrix_o[temp_idx] <= {gpio_led[7:0], low_byte};
+                            temp_idx <= temp_idx + 1'b1;
+                            state <= DELAY_HIGH;
+                        end
                     end
-                end
 
-                DELAY_HIGH: begin
-                    if (!gpio_led[14]) begin
-                        state <= RECEIVE_LOW;
+                    DELAY_HIGH: begin
+                        if (!gpio_led[14]) begin
+                            state <= RECEIVE_LOW;
+                        end
                     end
-                end
-            endcase
+                endcase
+            end
         end
     end
 

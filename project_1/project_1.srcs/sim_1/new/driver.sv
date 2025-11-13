@@ -52,16 +52,17 @@ module driver (
             temp_idx <= 0;
             state <= WAIT_SEQ;
             receive <= 0;
+            sequence_send <= 0;
         end else begin
             case (state)
                 WAIT_SEQ: begin
+                    receive <= 0;
+                    temp_idx <= 0;
+                    sequence_send <= 0;
                     if (sequence_valid) begin
                         temp_matrix <= sequence_i;
                         state <= SEND_SEQ;
                     end
-                    receive <= 0;
-                    temp_idx <= 0;
-                    sequence_send <= 0;
                 end
                 SEND_SEQ: begin
                     if (temp_idx == `MATRIX_SIZE) begin
