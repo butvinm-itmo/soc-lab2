@@ -32,30 +32,40 @@ module monitor (
     input test_done_i
 );
 
-    localparam RECEIVE_LOW = 0;
-    localparam DELAY_LOW = 1;
-    localparam RECEIVE_HIGH = 2;
-    localparam DELAY_HIGH = 3;
+    localparam IDLE = 0;
+    localparam RECEIVE_LOW = 1;
+    localparam DELAY_LOW = 2;
+    localparam RECEIVE_HIGH = 3;
+    localparam DELAY_HIGH = 4;
 
     logic [5:0] temp_idx;
-    logic [1:0] state;
+    logic [2:0] state;
     logic [7:0] low_byte;
+    logic reception_done;
 
     always_ff @(posedge clk) begin
         if (rst) begin
             temp_idx <= 0;
-            state <= RECEIVE_LOW;
+            state <= IDLE;
             low_byte <= 0;
+            reception_done <= 0;
             for (int i = 0; i < `MATRIX_SIZE; i++) begin
                 result_matrix_o[i] <= '0;
             end
         end else begin
             if (test_done_i) begin
                 temp_idx <= 0;
-                state <= RECEIVE_LOW;
+                state <= IDLE;
                 low_byte <= 0;
-            end else begin
+                reception_done <= 0;
+            end else if (!reception_done) begin
                 case (state)
+                    IDLE: begin
+                        // Wait for gpio_led[14] to be 0 (no transmission in progress)
+                        if (!gpio_led[14]) begin
+                            state <= RECEIVE_LOW;
+                        end
+                    end
                     RECEIVE_LOW: begin
                         if (gpio_led[14]) begin
                             low_byte <= gpio_led[7:0];
@@ -71,8 +81,13 @@ module monitor (
 
                     RECEIVE_HIGH: begin
                         if (gpio_led[14]) begin
-                            result_matrix_o[temp_idx] <= {gpio_led[7:0], low_byte};
-                            temp_idx <= temp_idx + 1'b1;
+                            if (temp_idx < `MATRIX_SIZE) begin
+                                result_matrix_o[temp_idx] <= {gpio_led[7:0], low_byte};
+                                temp_idx <= temp_idx + 1'b1;
+                                if (temp_idx + 1 == `MATRIX_SIZE) begin
+                                    reception_done <= 1;
+                                end
+                            end
                             state <= DELAY_HIGH;
                         end
                     end
