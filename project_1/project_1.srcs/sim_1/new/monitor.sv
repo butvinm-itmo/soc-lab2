@@ -50,7 +50,6 @@ module monitor (
                 result_matrix_o[i] <= '0;
             end
         end else begin
-            // Reset for next test when scoreboard signals completion
             if (test_done_i) begin
                 temp_idx <= 0;
                 state <= RECEIVE_LOW;

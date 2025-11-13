@@ -219,7 +219,6 @@ module scoreboard (
             $fwrite(log_file, "Execution time: %0t ns\n", end_time - start_time);
             $fwrite(log_file, "Progress: %0d/%0d\n\n", test_count, `TEST_RUNS);
 
-            // Signal test completion and return to WAIT_A for next test
             test_done <= 1;
             state <= WAIT_A;
         end

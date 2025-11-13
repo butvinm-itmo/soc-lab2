@@ -79,11 +79,10 @@ module agent (
         .test_done(test_done)
     );
 
-    // Test coordination logic
     always_ff @(posedge clk_i) begin
         if (rst_i) begin
             test_counter <= 0;
-            test_start   <= 1;  // Start first test
+            test_start   <= 1;
         end else begin
             if (test_done) begin
                 test_counter <= test_counter + 1;
@@ -91,7 +90,7 @@ module agent (
                     $display("\n=== All %0d tests completed ===\n", `TEST_RUNS);
                     $finish();
                 end else begin
-                    test_start <= 1;  // Start next test
+                    test_start <= 1;
                 end
             end else begin
                 test_start <= 0;
